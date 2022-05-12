@@ -10,6 +10,12 @@ const App = () => {
     note: "",
   });
 
+  const [isSelected, setIsSelected] = useState({
+    status: false,
+    noteSelected: null,
+    
+    });
+
   let initialState = JSON.parse(localStorage.getItem("notas")) || [];
   const [notas, setNotas] = useState(initialState);
 
@@ -17,25 +23,27 @@ const App = () => {
     setInputsState({ ...inputsState, [event.target.name]: event.target.value });
   };
 
-  const handleClickLimpiar = (event) => {
+  const handleClickLimpiar = () => {
     setInputsState({ title: "", date: "", note: "" });
+    setIsSelected({status: false,noteSelected: null});
   };
 
   const handleClickGuardar = () => {
     setNotas([...notas, inputsState]);
     localStorage.setItem("notas", JSON.stringify(...notas, inputsState));
     handleClickLimpiar();
+    setIsSelected({status: false,noteSelected: null});
   };
 
   const handleRemoveNote = (index) => {
-    const NuevoArreglo = [];
+    const nuevoArreglo = [];
     notas.forEach((nota, i) => {
       if (index !== i) {
-        NuevoArreglo.push(nota);
+        nuevoArreglo.push(nota);
       }
     });
-    localStorage.setItem("notas", JSON.stringify(NuevoArreglo));
-    setNotas(NuevoArreglo);
+    localStorage.setItem("notas", JSON.stringify(nuevoArreglo));
+    setNotas(nuevoArreglo);
   };
   const handleClickLimpiarLista = () => {
     setNotas([]);
@@ -43,11 +51,22 @@ const App = () => {
   };
 
 const handleClicNota = (index) =>{
-setInputsState({
+  setIsSelected ({status:true, noteSelected:index });
+    setInputsState({
     title: notas[index].title,
     date: notas[index].date,
     note: notas[index].note,
   });
+};
+
+const handleClickActualizar = () => {
+
+  let listaModificada = notas;
+  listaModificada[ isSelected.noteSelected] = inputsState;
+  setNotas(listaModificada);
+  localStorage.setItem("notas",JSON.stringify(listaModificada));
+  handleClickLimpiar ();
+  setIsSelected({status: false,noteSelected: null});
 };
 
   return (
@@ -55,15 +74,18 @@ setInputsState({
       <div className="row">
         <div className="col">
           <h3>Lista</h3>
-          {
-            notas.length === 0 ?( <p> No hay notas capturadas.</p> 
-            ):(
+          
+          {notas.length === 0 ?( 
+          <p> No hay notas capturadas.</p> 
+          ):(
           <ul>
             {notas.map((nota, index) => {
               return (
-                <li onClick={() => handleClicNota(index)} 
+                <li 
+                onClick={() => handleClicNota(index)} 
                 key={index} 
-                style={{cursor:"pointer"}}>
+                style={{cursor:"pointer"}}
+                >
                   {nota.title} ({nota.date})&nbsp;
                   <i
                     className="bi-x-circle"
@@ -79,8 +101,6 @@ setInputsState({
             })}
           </ul>
           )}
-
-
           <button
             type="button"
             className="btn btn-primary"
@@ -115,6 +135,7 @@ setInputsState({
               onChange={handleInputChange}
               value={inputsState.date}
               style={{ width: "100%" }}
+              
             />
           </label>
           <br />
@@ -133,28 +154,49 @@ setInputsState({
             <span className="col">
               <button
                 type="button"
-                className="btn btn-primary me-2"
+                className="btn btn-primary "
                 onClick={handleClickLimpiar}
                 style={{ width: "100%" }}
-                disabled={inputsState.title === "" && 
+                disabled={
+                inputsState.title === "" && 
                 initialState.date === "" &&
-                inputsState.note === ""}
+                inputsState.note === ""
+              }
               >
                 Limpiar
               </button>
             </span>
+{isSelected.status && (
+  <span className="col">
+    <button
+  type="button"
+  className="btn btn-primary"
+  onClick={handleClickActualizar}
+  style={{ width: "100%" }}
+  disabled={
+  inputsState.title === "" || 
+  initialState.date === "" ||
+  inputsState.note === ""
+  }
+>
+  Actualizar
+</button>
+</span>
+)}
             <span className="col">
               <button
                 type="button"
-                className="btn btn-primary me-2"
+                className="btn btn-primary "
                 onClick={handleClickGuardar}
                 style={{ width: "100%" }}
-                disabled={inputsState.title === "" || 
+                disabled={
+                inputsState.title === "" || 
                 initialState.date === "" ||
-                inputsState.note === ""}
+                inputsState.note === ""
+              }
               >
                 Guardar
-              </button>{" "}
+              </button>
             </span>
           </div>
         </div>
